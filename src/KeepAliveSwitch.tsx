@@ -1,4 +1,10 @@
-import React, { ComponentType, ReactNode, useContext, useRef } from 'react';
+import React, {
+  ComponentType,
+  Key,
+  ReactNode,
+  useContext,
+  useRef,
+} from 'react';
 import {
   matchPath,
   SwitchProps,
@@ -20,7 +26,7 @@ interface Props extends SwitchProps {
  */
 export default function KeepAliveSwitch(props: Props) {
   const context = useContext(RouterContext);
-  const initializedRef = useRef(new Set<any>());
+  const initializedRef = useRef(new Set<Key>());
   const RenderRoute = props.renderRoute ?? RenderRouteDefault;
   const location = props.location || context.location;
   let matchedIndex: number | null = null;
