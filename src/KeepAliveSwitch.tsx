@@ -3,6 +3,7 @@ import React, {
   Key,
   ReactNode,
   useContext,
+  useMemo,
   useRef,
 } from 'react';
 import {
@@ -11,13 +12,11 @@ import {
   __RouterContext as RouterContext,
 } from 'react-router';
 
-interface RenderRouteProps {
+export interface RenderRouteProps {
   visible: boolean;
   children: ReactNode;
 }
-const RenderRouteDefault = ({ visible, children }: RenderRouteProps) => (
-  <div style={visible ? void 0 : { display: 'none' }}>{children}</div>
-);
+
 interface Props extends SwitchProps {
   renderRoute?: ComponentType<RenderRouteProps>;
 }
@@ -26,17 +25,24 @@ interface Props extends SwitchProps {
  */
 export default function KeepAliveSwitch(props: Props) {
   const context = useContext(RouterContext);
+  const { renderRoute, location = context.location, children } = props;
   const initializedRef = useRef(new Set<Key>());
-  const RenderRoute = props.renderRoute ?? RenderRouteDefault;
-  const location = props.location || context.location;
+  const RenderRoute = useMemo(
+    () =>
+      renderRoute ??
+      ((({ visible, children }) => (
+        <div style={visible ? void 0 : { display: 'none' }}>{children}</div>
+      )) as ComponentType<RenderRouteProps>),
+    [renderRoute]
+  );
   let matchedIndex: number | null = null;
-  const elements = React.Children.map(props.children, (child, index) => {
+  const elements = React.Children.map(children, (child, index) => {
     if (React.isValidElement(child)) {
       const { children, render, component } = child.props;
       const key = child.key ?? index;
       const path = child.props.path || child.props.from;
       const match = path
-        ? matchPath(location.pathname, { ...child.props, path })
+        ? matchPath(location!.pathname, { ...child.props, path })
         : context.match;
       if (matchedIndex == null && match) {
         matchedIndex = index;
