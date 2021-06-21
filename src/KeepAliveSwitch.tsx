@@ -27,17 +27,18 @@ export default function KeepAliveSwitch(props: Props) {
   const elements = React.Children.map(props.children, (child, index) => {
     if (React.isValidElement(child)) {
       const { children, render, component } = child.props;
+      const key = child.key ?? index;
       const path = child.props.path || child.props.from;
       const match = path
         ? matchPath(location.pathname, { ...child.props, path })
         : context.match;
       if (matchedIndex == null && match) {
         matchedIndex = index;
-        if (!initializedRef.current.has(child)) {
-          initializedRef.current.add(child);
+        if (!initializedRef.current.has(key)) {
+          initializedRef.current.add(key);
         }
       }
-      const initialized = initializedRef.current.has(child);
+      const initialized = initializedRef.current.has(key);
       return (
         initialized && (
           <RenderRoute visible={matchedIndex === index}>
