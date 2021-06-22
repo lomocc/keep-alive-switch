@@ -38,7 +38,7 @@ export default function KeepAliveSwitch(props: Props) {
   let matchedIndex: number | null = null;
   const elements = React.Children.map(children, (child, index) => {
     if (React.isValidElement(child)) {
-      const { children, render, component } = child.props;
+      const { children, render, component, keepAlive } = child.props;
       const key = child.key ?? index;
       const path = child.props.path || child.props.from;
       const match = path
@@ -51,29 +51,34 @@ export default function KeepAliveSwitch(props: Props) {
         }
       }
       const initialized = initializedRef.current.has(key);
-      return (
-        initialized && (
-          <RenderRoute visible={matchedIndex === index}>
-            {React.cloneElement(
-              child,
-              {
-                location,
-                computedMatch: match,
-              },
-              (props: any) =>
-                children
-                  ? typeof children === 'function'
-                    ? children(props)
-                    : children
-                  : component
-                  ? React.createElement(component, props)
-                  : render
-                  ? render(props)
-                  : null
-            )}
-          </RenderRoute>
-        )
+      if (!initialized) {
+        return null;
+      }
+      const matched = matchedIndex === index;
+      if (!keepAlive && !matched) {
+        return null;
+      }
+      const element = React.cloneElement(
+        child,
+        {
+          location,
+          computedMatch: match,
+        },
+        (props: any) =>
+          children
+            ? typeof children === 'function'
+              ? children(props)
+              : children
+            : component
+            ? React.createElement(component, props)
+            : render
+            ? render(props)
+            : null
       );
+      if (keepAlive) {
+        return <RenderRoute visible={matched}>{element}</RenderRoute>;
+      }
+      return element;
     }
     return null;
   });
