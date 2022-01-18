@@ -1,5 +1,6 @@
 import React, {
   ComponentType,
+  CSSProperties,
   Key,
   ReactNode,
   useContext,
@@ -19,21 +20,34 @@ export interface RenderRouteProps {
 
 interface Props extends SwitchProps {
   renderRoute?: ComponentType<RenderRouteProps>;
+  className?: string;
+  style?: CSSProperties;
 }
 /**
  * The public API for rendering the first <Route> that matches.
  */
 export default function KeepAliveSwitch(props: Props) {
   const context = useContext(RouterContext);
-  const { renderRoute, location = context.location, children } = props;
+  const {
+    renderRoute,
+    className,
+    style,
+    location = context.location,
+    children,
+  } = props;
   const initializedRef = useRef(new Set<Key>());
   const RenderRoute = useMemo(
     () =>
       renderRoute ??
       ((({ visible, children }) => (
-        <div style={visible ? void 0 : { display: 'none' }}>{children}</div>
+        <div
+          style={visible ? style : { display: 'none', ...style }}
+          className={className}
+        >
+          {children}
+        </div>
       )) as ComponentType<RenderRouteProps>),
-    [renderRoute]
+    [renderRoute, className, style]
   );
   let matchedIndex: number | null = null;
   const elements = React.Children.map(children, (child, index) => {
